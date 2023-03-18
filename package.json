@@ -5,7 +5,8 @@
   "main": "src/server.ts",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "lint": "eslint src -e .ts --fix"
+    "lint": "eslint src -e .ts --fix",
+    "knex": "node --loader tsx ./node_modules/knex/bin/cli.js"
   },
   "keywords": [],
   "author": "",
@@ -18,6 +19,7 @@
     "typescript": "^5.0.2"
   },
   "dependencies": {
+    "dotenv": "^16.0.3",
     "fastify": "^4.14.1",
     "knex": "^2.4.2",
     "sqlite3": "^5.1.6"
