@@ -22,8 +22,40 @@ export async function transactionsRoutes(app: FastifyInstance) {
     return res.status(202).send();
   });
 
-  app.get("/", async (req, res) => {
+  app.get("/", async (_, res) => {
     const transactions = await knex("transactions").select("*");
-    return res.status(200).send(transactions);
+    return res.status(200).send({
+      data: transactions,
+    });
+  });
+
+  app.get("/:id", async (req, res) => {
+    const getTransactionsParmsSchema = z.object({
+      id: z.string().uuid(),
+    });
+
+    const { id } = getTransactionsParmsSchema.parse(req.params);
+
+    const transaction = await knex("transactions")
+      .where({
+        id,
+      })
+      .first();
+
+    return res.status(200).send({
+      data: transaction,
+    });
+  });
+
+  app.get("/summary", async (_, res) => {
+    const summary = await knex("transactions")
+      .sum("amount", {
+        as: "amount",
+      })
+      .first(); // first faz não retornar um array
+
+    return res.status(200).send({
+      data: summary!.amount,
+    });
   });
 }
