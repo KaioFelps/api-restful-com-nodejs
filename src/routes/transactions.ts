@@ -5,8 +5,6 @@ import { knex } from "../database";
 import validateSessionId from "../middlewares/validate-session-id";
 
 export async function transactionsRoutes(app: FastifyInstance) {
-  app.addHook("preHandler", (req, res) => validateSessionId(req, res));
-
   app.post("/", async (req, res) => {
     const createTransactionBodySchema = z.object({
       title: z.string(),
@@ -42,53 +40,71 @@ export async function transactionsRoutes(app: FastifyInstance) {
     return res.status(202).send();
   });
 
-  app.get("/", async (req, res) => {
-    const { sessionId } = req.cookies;
+  app.get(
+    "/",
+    {
+      preHandler: [validateSessionId],
+    },
+    async (req, res) => {
+      const { sessionId } = req.cookies;
 
-    const transactions = await knex("transactions").where({
-      session_id: sessionId,
-    });
-
-    return res.status(200).send({
-      data: transactions || [],
-    });
-  });
-
-  app.get("/:id", async (req, res) => {
-    const { sessionId } = req.cookies;
-
-    const getTransactionsParmsSchema = z.object({
-      id: z.string().uuid(),
-    });
-
-    const { id } = getTransactionsParmsSchema.parse(req.params);
-
-    const transaction = await knex("transactions")
-      .where({
+      const transactions = await knex("transactions").where({
         session_id: sessionId,
-        id,
-      })
-      .first();
+      });
 
-    return res.status(200).send({
-      data: transaction || [],
-    });
-  });
+      return res.status(200).send({
+        data: transactions || [],
+      });
+    }
+  );
 
-  app.get("/summary", async (req, res) => {
-    const { sessionId } = req.cookies;
+  app.get(
+    "/:id",
+    {
+      preHandler: [validateSessionId],
+    },
+    async (req, res) => {
+      const { sessionId } = req.cookies;
 
-    const summary = await knex("transactions")
-      .where({
-        session_id: sessionId,
-      })
-      .sum("amount", {
-        as: "amount",
-      })
-      .first(); // first faz não retornar um array
+      const getTransactionsParmsSchema = z.object({
+        id: z.string().uuid(),
+      });
 
-    return res.status(200).send({
-      data: summary!.amount,
-    });
-  });
+      const { id } = getTransactionsParmsSchema.parse(req.params);
+
+      const transaction = await knex("transactions")
+        .where({
+          session_id: sessionId,
+          id,
+        })
+        .first();
+
+      return res.status(200).send({
+        data: transaction || [],
+      });
+    }
+  );
+
+  app.get(
+    "/summary",
+    {
+      preHandler: [validateSessionId],
+    },
+    async (req, res) => {
+      const { sessionId } = req.cookies;
+
+      const summary = await knex("transactions")
+        .where({
+          session_id: sessionId,
+        })
+        .sum("amount", {
+          as: "amount",
+        })
+        .first(); // first faz não retornar um array
+
+      return res.status(200).send({
+        data: summary!.amount,
+      });
+    }
+  );
 }
