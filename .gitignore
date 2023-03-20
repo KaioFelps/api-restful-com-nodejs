@@ -1,4 +1,10 @@
 node_modules
-db
+db/*.db
+
+# env
 .env
 .env.test
+
+# build
+dist
+build
